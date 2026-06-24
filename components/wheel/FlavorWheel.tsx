@@ -55,7 +55,7 @@ export default function FlavorWheel() {
           </span>
           {group && <>
             <span style={{ color: 'var(--ios-text3)' }}>›</span>
-            <span style={{ color: level === 'subgroups' ? 'var(--ios-text)' : 'var(--ios-text3)', color: group.color }}>{group.name}</span>
+            <span style={{ color: group.color }}>{group.name}</span>
           </>}
           {subgroup && <>
             <span style={{ color: 'var(--ios-text3)' }}>›</span>
