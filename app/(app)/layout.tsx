@@ -6,7 +6,6 @@ import NavBar from '@/components/ui/NavBar'
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
@@ -17,11 +16,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div
-      className="flex flex-col h-screen w-full overflow-hidden"
-      style={{ background: 'var(--ios-bg)', paddingTop: 'var(--safe-top)' }}
+      className="flex flex-col w-full overflow-hidden"
+      style={{
+        background: 'var(--ios-bg)',
+        height: '100dvh',
+        paddingTop: 'env(safe-area-inset-top)',
+      }}
     >
       <NavBar user={profile} />
-      <main className="flex-1 overflow-hidden relative">
+      <main className="flex-1 overflow-hidden relative min-h-0">
         {children}
       </main>
       <TabBar />

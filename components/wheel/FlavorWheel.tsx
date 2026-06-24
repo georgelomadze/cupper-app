@@ -1,29 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft } from 'lucide-react'
-import { WHEEL_DATA, type WheelGroup, type WheelSubgroup } from '@/lib/sca/wheel-data'
-
-type WheelLevel = 'groups' | 'subgroups' | 'descriptors'
+import { motion } from 'framer-motion'
+import { WHEEL_DATA } from '@/lib/sca/wheel-data'
 
 export default function FlavorWheel() {
-  const [level, setLevel]       = useState<WheelLevel>('groups')
-  const [group, setGroup]       = useState<WheelGroup | null>(null)
-  const [subgroup, setSubgroup] = useState<WheelSubgroup | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [openGroup, setOpenGroup] = useState<string | null>(null)
 
-  function selectGroup(g: WheelGroup) {
-    setGroup(g)
-    setLevel('subgroups')
-  }
-
-  function selectSubgroup(sg: WheelSubgroup) {
-    setSubgroup(sg)
-    setLevel('descriptors')
-  }
-
-  function toggleDescriptor(name: string) {
+  function toggle(name: string) {
     setSelected(prev => {
       const next = new Set(prev)
       next.has(name) ? next.delete(name) : next.add(name)
@@ -31,109 +16,82 @@ export default function FlavorWheel() {
     })
   }
 
-  function goBack() {
-    if (level === 'descriptors') { setLevel('subgroups'); setSubgroup(null) }
-    else { setLevel('groups'); setGroup(null) }
-  }
-
-  const accentColor = group?.color ?? 'var(--gold)'
-
   return (
     <div className="flex flex-col h-full">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 px-5 py-2 flex-shrink-0">
-        {level !== 'groups' && (
-          <button onClick={goBack} className="press-scale" style={{ color: 'var(--gold-light)' }}>
-            <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
-          </button>
-        )}
-        <div className="flex items-center gap-1.5 text-sm">
-          <span
-            style={{ color: level === 'groups' ? 'var(--ios-text)' : 'var(--ios-text3)', cursor: level !== 'groups' ? 'pointer' : 'default' }}
-            onClick={() => { if (level !== 'groups') { setLevel('groups'); setGroup(null); setSubgroup(null) } }}
-          >
-            Колесо
-          </span>
-          {group && (
-            <>
-              <span style={{ color: 'var(--ios-text3)' }}>›</span>
-              <span style={{ color: group.color }}>{group.name}</span>
-            </>
-          )}
-          {subgroup && (
-            <>
-              <span style={{ color: 'var(--ios-text3)' }}>›</span>
-              <span style={{ color: 'var(--ios-text)' }}>{subgroup.name}</span>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Выбранные дескрипторы */}
+      {/* Выбранные */}
       {selected.size > 0 && (
-        <div className="flex gap-2 px-4 pb-2 overflow-x-auto flex-shrink-0" style={{ scrollbarWidth: 'none' }}>
-          {[...selected].map(d => (
-            <button key={d} onClick={() => toggleDescriptor(d)}
-              className="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full press-scale"
-              style={{ background: 'var(--gold)', color: '#000' }}>
-              {d} ×
-            </button>
-          ))}
+        <div className="px-4 pt-2 pb-1 flex-shrink-0">
+          <div className="flex flex-wrap gap-2">
+            {[...selected].map(d => (
+              <button key={d} onClick={() => toggle(d)}
+                className="text-xs font-semibold px-3 py-1.5 rounded-full press-scale"
+                style={{ background: 'var(--gold)', color: '#000' }}>
+                {d} ×
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setSelected(new Set())}
+            className="text-xs mt-2 press-scale" style={{ color: 'var(--ios-text3)' }}>
+            Очистить всё
+          </button>
         </div>
       )}
 
-      {/* Контент */}
-      <div className="scroll-native flex-1 pb-24">
-        <AnimatePresence mode="wait">
-          {level === 'groups' && (
-            <motion.div key="groups"
-              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-              className="flex flex-wrap gap-2.5 px-4 pt-2">
-              {WHEEL_DATA.map(g => (
-                <button key={g.id} onClick={() => selectGroup(g)}
-                  className="rounded-2xl px-4 py-2.5 text-sm font-semibold press-scale"
-                  style={{ background: `${g.color}20`, color: g.color, border: `0.5px solid ${g.color}40` }}>
-                  {g.name}
-                </button>
-              ))}
-            </motion.div>
-          )}
+      {/* Группы — аккордеон */}
+      <div className="scroll-native flex-1 px-4 pt-2 pb-4 space-y-2">
+        {WHEEL_DATA.map(group => (
+          <div key={group.id} className="rounded-2xl overflow-hidden"
+            style={{ background: 'var(--ios-surface)', border: '0.5px solid var(--ios-border)' }}>
+            {/* Заголовок группы */}
+            <button
+              onClick={() => setOpenGroup(openGroup === group.id ? null : group.id)}
+              className="w-full flex items-center justify-between px-4 py-3.5 press-scale">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: group.color }} />
+                <span className="font-semibold text-[15px]">{group.name}</span>
+              </div>
+              <span className="text-lg" style={{ color: 'var(--ios-text3)',
+                transform: openGroup === group.id ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s ease', display: 'inline-block' }}>
+                ›
+              </span>
+            </button>
 
-          {level === 'subgroups' && group && (
-            <motion.div key="subgroups"
-              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-              className="flex flex-wrap gap-2.5 px-4 pt-2">
-              {group.subgroups.map(sg => (
-                <button key={sg.id} onClick={() => selectSubgroup(sg)}
-                  className="rounded-2xl px-4 py-2.5 text-sm font-semibold press-scale"
-                  style={{ background: `${group.color}15`, color: group.color, border: `0.5px solid ${group.color}30` }}>
-                  {sg.name}
-                </button>
-              ))}
-            </motion.div>
-          )}
-
-          {level === 'descriptors' && subgroup && (
-            <motion.div key="descriptors"
-              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-              className="flex flex-wrap gap-2.5 px-4 pt-2">
-              {subgroup.descriptors.map(d => {
-                const isSelected = selected.has(d)
-                return (
-                  <button key={d} onClick={() => toggleDescriptor(d)}
-                    className="rounded-2xl px-4 py-2.5 text-sm font-semibold press-scale"
-                    style={{
-                      background: isSelected ? accentColor : `${accentColor}15`,
-                      color: isSelected ? '#000' : accentColor,
-                      border: `0.5px solid ${accentColor}40`,
-                    }}>
-                    {d}
-                  </button>
-                )
-              })}
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {/* Дескрипторы — все сразу */}
+            {openGroup === group.id && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="px-4 pb-4 pt-1"
+                style={{ borderTop: '0.5px solid var(--ios-border)' }}
+              >
+                {group.subgroups.map(sub => (
+                  <div key={sub.id} className="mb-3">
+                    <p className="text-xs font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: group.color, opacity: 0.8 }}>{sub.name}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {sub.descriptors.map(d => {
+                        const isSelected = selected.has(d)
+                        return (
+                          <button key={d} onClick={() => toggle(d)}
+                            className="text-sm px-3 py-1.5 rounded-xl press-scale font-medium"
+                            style={{
+                              background: isSelected ? group.color : `${group.color}18`,
+                              color: isSelected ? '#000' : group.color,
+                              border: `0.5px solid ${group.color}40`,
+                            }}>
+                            {d}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )

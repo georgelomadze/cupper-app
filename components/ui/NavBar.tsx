@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Plus } from 'lucide-react'
 import type { User } from '@/lib/types'
 
 const TITLES: Record<string, string> = {
@@ -15,7 +14,6 @@ const TITLES: Record<string, string> = {
 export default function NavBar({ user }: { user: User | null }) {
   const pathname = usePathname()
   const title = TITLES[pathname] ?? 'CUPPER'
-  const showAdd = pathname === '/sessions'
   const initials = user?.name
     ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
     : '?'
@@ -32,16 +30,7 @@ export default function NavBar({ user }: { user: User | null }) {
         style={{ color: 'var(--gold-light)', letterSpacing: pathname === '/sessions' ? '4px' : '1px' }}>
         {title}
       </h1>
-      {showAdd ? (
-        <Link href="/sessions/new">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center press-scale"
-            style={{ background: 'var(--ios-glass)', border: '0.5px solid var(--ios-border)' }}>
-            <Plus className="w-5 h-5" style={{ color: 'var(--gold-light)' }} strokeWidth={2.5} />
-          </div>
-        </Link>
-      ) : (
-        <div className="w-8" />
-      )}
+      <div className="w-8" />
     </header>
   )
 }
