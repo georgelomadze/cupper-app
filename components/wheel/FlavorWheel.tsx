@@ -8,10 +8,10 @@ import { WHEEL_DATA, type WheelGroup, type WheelSubgroup } from '@/lib/sca/wheel
 type WheelLevel = 'groups' | 'subgroups' | 'descriptors'
 
 export default function FlavorWheel() {
-  const [level, setLevel]           = useState<WheelLevel>('groups')
-  const [group, setGroup]           = useState<WheelGroup | null>(null)
-  const [subgroup, setSubgroup]     = useState<WheelSubgroup | null>(null)
-  const [selected, setSelected]     = useState<Set<string>>(new Set())
+  const [level, setLevel]       = useState<WheelLevel>('groups')
+  const [group, setGroup]       = useState<WheelGroup | null>(null)
+  const [subgroup, setSubgroup] = useState<WheelSubgroup | null>(null)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
 
   function selectGroup(g: WheelGroup) {
     setGroup(g)
@@ -48,25 +48,30 @@ export default function FlavorWheel() {
           </button>
         )}
         <div className="flex items-center gap-1.5 text-sm">
-          <span style={{ color: level === 'groups' ? 'var(--ios-text)' : 'var(--ios-text3)' }}
-            className={level !== 'groups' ? 'cursor-pointer' : ''}
-            onClick={() => level !== 'groups' && setLevel('groups') && setGroup(null)}>
-            Wheel
+          <span
+            style={{ color: level === 'groups' ? 'var(--ios-text)' : 'var(--ios-text3)', cursor: level !== 'groups' ? 'pointer' : 'default' }}
+            onClick={() => { if (level !== 'groups') { setLevel('groups'); setGroup(null); setSubgroup(null) } }}
+          >
+            Колесо
           </span>
-          {group && <>
-            <span style={{ color: 'var(--ios-text3)' }}>›</span>
-            <span style={{ color: group.color }}>{group.name}</span>
-          </>}
-          {subgroup && <>
-            <span style={{ color: 'var(--ios-text3)' }}>›</span>
-            <span style={{ color: 'var(--ios-text)' }}>{subgroup.name}</span>
-          </>}
+          {group && (
+            <>
+              <span style={{ color: 'var(--ios-text3)' }}>›</span>
+              <span style={{ color: group.color }}>{group.name}</span>
+            </>
+          )}
+          {subgroup && (
+            <>
+              <span style={{ color: 'var(--ios-text3)' }}>›</span>
+              <span style={{ color: 'var(--ios-text)' }}>{subgroup.name}</span>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Selected chips */}
+      {/* Выбранные дескрипторы */}
       {selected.size > 0 && (
-        <div className="flex gap-2 px-4 pb-2 overflow-x-auto scrollbar-none flex-shrink-0">
+        <div className="flex gap-2 px-4 pb-2 overflow-x-auto flex-shrink-0" style={{ scrollbarWidth: 'none' }}>
           {[...selected].map(d => (
             <button key={d} onClick={() => toggleDescriptor(d)}
               className="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full press-scale"
@@ -77,11 +82,12 @@ export default function FlavorWheel() {
         </div>
       )}
 
-      {/* Content */}
+      {/* Контент */}
       <div className="scroll-native flex-1 pb-24">
         <AnimatePresence mode="wait">
           {level === 'groups' && (
-            <motion.div key="groups" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+            <motion.div key="groups"
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
               className="flex flex-wrap gap-2.5 px-4 pt-2">
               {WHEEL_DATA.map(g => (
                 <button key={g.id} onClick={() => selectGroup(g)}
@@ -94,7 +100,8 @@ export default function FlavorWheel() {
           )}
 
           {level === 'subgroups' && group && (
-            <motion.div key="subgroups" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+            <motion.div key="subgroups"
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
               className="flex flex-wrap gap-2.5 px-4 pt-2">
               {group.subgroups.map(sg => (
                 <button key={sg.id} onClick={() => selectSubgroup(sg)}
@@ -107,7 +114,8 @@ export default function FlavorWheel() {
           )}
 
           {level === 'descriptors' && subgroup && (
-            <motion.div key="descriptors" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+            <motion.div key="descriptors"
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
               className="flex flex-wrap gap-2.5 px-4 pt-2">
               {subgroup.descriptors.map(d => {
                 const isSelected = selected.has(d)
